@@ -13,7 +13,7 @@ public:
 	static	LogMessage*				CreateInstance						(HWND window) ;
 	static	LogMessage*				GetSingleton						( ) ;
 	void                            init(HWND hwnd);
-	void					        DoLogMessage						( TCHAR* message,int warnlevel ) ;
+	void					        DoLogMessage						(char* message,int warnlevel ) ;
 	void                            clear();
 	~LogMessage							(void);
 private:

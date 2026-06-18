@@ -203,11 +203,11 @@ public:
 class Mud_Misc
 {
 public:
-	static std::wstring ExePath() {
+	static std::string ExePath() {
 		TCHAR buffer[MAX_PATH];
 		GetModuleFileName(NULL, buffer, MAX_PATH);
-		wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
-		return wstring(buffer).substr(0, pos);
+		string::size_type pos = string(buffer).find_last_of("\\/");
+		return string(buffer).substr(0, pos);
 	}
 
 	static __forceinline uint32_t pow2up(uint32_t v)

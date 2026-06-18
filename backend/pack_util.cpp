@@ -44,20 +44,20 @@ void AddSection(const char* sname, LPVOID _section, DWORD _section_size, DWORD _
 	pe->int_headers.OptionalHeader.AddressOfEntryPoint = pe->m_sections[idx].header.VirtualAddress + _entry_point_offset;
 }
 
-int pe_read(TCHAR* filename, PE *pe)
+int pe_read(CHAR* filename, PE *pe)
 {
 	LogMessage* message = LogMessage::GetSingleton();
-	message->DoLogMessage(L"Opening file...", ERR_INFO);
-	FILE *hFile = _wfopen(filename, L"rb");
+	message->DoLogMessage("Opening file...", ERR_INFO);
+	FILE *hFile = fopen(filename, "rb");
 	if (hFile == NULL) {
-		message->DoLogMessage(L"Unable to open file!", ERR_ERROR);
+		message->DoLogMessage("Unable to open file!", ERR_ERROR);
 		return 0;
 	}
-	message->DoLogMessage(L"Reading DOS MZ PE header...", ERR_INFO);
+	message->DoLogMessage("Reading DOS MZ PE header...", ERR_INFO);
 	fread(&pe->m_dos.header, sizeof(IMAGE_DOS_HEADER), 1, hFile);
 	if (pe->m_dos.header.e_magic != IMAGE_DOS_SIGNATURE)
 	{
-		message->DoLogMessage(L"Not a valid PE file!", ERR_ERROR);
+		message->DoLogMessage("Not a valid PE file!", ERR_ERROR);
 		return 0;
 	}
 
@@ -66,28 +66,28 @@ int pe_read(TCHAR* filename, PE *pe)
 		pe->m_dos.stub = (BYTE*)malloc(pe->m_dos.stub_size);
 		fread(pe->m_dos.stub, pe->m_dos.stub_size, 1, hFile);
 	}
-	message->DoLogMessage(L"Reading PE header...", ERR_INFO);
+	message->DoLogMessage("Reading PE header...", ERR_INFO);
 	fread(&pe->int_headers, sizeof(IMAGE_NT_HEADERS), 1, hFile);
 	if (pe->int_headers.Signature != IMAGE_NT_SIGNATURE) {
-		message->DoLogMessage(L"PE signature invalid!", ERR_ERROR);
+		message->DoLogMessage("PE signature invalid!", ERR_ERROR);
 		return 0;
 	}
 
 	if (pe->int_headers.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR].Size == sizeof(IMAGE_COR20_HEADER))
 	{
-		message->DoLogMessage(L"mupack cannot compress .NET assemblies!", ERR_ERROR);
+		message->DoLogMessage("mupack cannot compress .NET assemblies!", ERR_ERROR);
 		return 0;
 	}
 
 	if (pe->int_headers.FileHeader.Machine != IMAGE_FILE_MACHINE_I386) {
-		message->DoLogMessage(L"This file is not a x86 Windows file!", ERR_ERROR);
+		message->DoLogMessage("This file is not a x86 Windows file!", ERR_ERROR);
 		if (pe->int_headers.FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)
-			message->DoLogMessage(L"Use the x64 build of mupack to compress this file!", ERR_WARNING);
+			message->DoLogMessage("Use the x64 build of mupack to compress this file!", ERR_WARNING);
 		return 0;
 	}
 
 
-	message->DoLogMessage(L"Reading PE sections...", ERR_INFO);
+	message->DoLogMessage("Reading PE sections...", ERR_INFO);
 	pe->m_sections = (isections*)malloc(pe->int_headers.FileHeader.NumberOfSections * sizeof(isections));
 	for (int i = 0; i < pe->int_headers.FileHeader.NumberOfSections; i++)
 		fread(&pe->m_sections[i].header, sizeof(IMAGE_SECTION_HEADER), 1, hFile);
@@ -113,13 +113,13 @@ int pe_read(TCHAR* filename, PE *pe)
 	free(entrypoint_data);
 	if (found1 != -1 || found2 != -1 || found3 != -1)
 	{
-		message->DoLogMessage(L"This file is packed with mupack!", ERR_ERROR);
+		message->DoLogMessage("This file is packed with mupack!", ERR_ERROR);
 		return 0;
 	}
 	return 1;
 }
 
-void fix_checksum(TCHAR* filename)
+void fix_checksum(CHAR* filename)
 {
 	typedef PIMAGE_NT_HEADERS(WINAPI * CheckSumMappedFile)(PVOID BaseAddress, DWORD FileLength, PDWORD HeaderSum, PDWORD CheckSum);
 	HANDLE hFile;
@@ -154,12 +154,12 @@ void fix_checksum(TCHAR* filename)
 	}
 }
 
-int pe_write(TCHAR* filename, PE *pe)
+int pe_write(CHAR* filename, PE *pe)
 {
-	TCHAR data[256] = { 0 };
-	TCHAR dats[256] = { 0 };
+	char data[256] = { 0 };
+	char dats[256] = { 0 };
 	LogMessage* message = LogMessage::GetSingleton();
-	FILE *hFile = _wfopen(filename, L"wb");
+	FILE *hFile = fopen(filename, "wb");
 	if (!hFile)
 		return 0;
 	fwrite(&pe->m_dos.header, sizeof(IMAGE_DOS_HEADER), 1, hFile);
@@ -178,7 +178,7 @@ int pe_write(TCHAR* filename, PE *pe)
 
 	for (int i = 0; i < pe->int_headers.FileHeader.NumberOfSections; i++) {
 		if (pe->m_sections[i].header.SizeOfRawData) {
-			wsprintf(data, L"Writing %s section...", pe->m_sections[i].header.Name);
+			sprintf(data, "Writing %s section...", pe->m_sections[i].header.Name);
 			message->DoLogMessage(data, ERR_INFO);
 			fseek(hFile, pe->m_sections[i].header.PointerToRawData, SEEK_SET);
 			fwrite(pe->m_sections[i].data, pe->m_sections[i].header.SizeOfRawData, 1, hFile);

@@ -57,7 +57,7 @@ public:
 	DWORD Run()
 	{
 		LogMessage* message = LogMessage::GetSingleton();
-		message->DoLogMessage(L"Processing. Please wait.", ERR_SUCCESS);
+		message->DoLogMessage("Processing. Please wait.", ERR_SUCCESS);
 		compress_file(exe_path);
 		return 0;
 	}

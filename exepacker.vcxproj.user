@@ -16,6 +16,7 @@
     <LocalDebuggerWorkingDirectory>.\out</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>"C:\codecrack\code\github\mupack\out\mupack_prv.exe"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>"C:\codecrack\code\github\mupack\out\mupack_prv.exe"|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Public Demo|Win32'">
     <LocalDebuggerWorkingDirectory>.\out</LocalDebuggerWorkingDirectory>
@@ -25,6 +26,7 @@
     <LocalDebuggerWorkingDirectory>.\out</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>"C:\codecrack\code\github\mupack\out\exe_packer.exe"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>"C:\codecrack\code\github\mupack\out\exe_packer.exe"|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Public Packer|Win32'">
     <LocalDebuggerWorkingDirectory>.\out</LocalDebuggerWorkingDirectory>

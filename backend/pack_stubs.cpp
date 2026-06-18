@@ -352,12 +352,12 @@ void functions_lzma(PE *pe)
 
 	LogMessage* message = LogMessage::GetSingleton();
 	TCHAR data[256] = { 0 };
-	message->DoLogMessage(L"Copying decompressor code...", ERR_INFO);
+	message->DoLogMessage("Copying decompressor code...", ERR_INFO);
 
 	DWORD unpacker_sz = get_lzmadepackersize();
 	DWORD unpacker_ptr = get_lzmadepackerptr();
 
-	wsprintf(data, L"LZMA depacker is %d bytes...", unpacker_sz);
+	sprintf(data, "LZMA depacker is %d bytes...", unpacker_sz);
 	message->DoLogMessage(data, ERR_INFO);
 
 	DWORD psize = 0, sfunc[5] = { 0 };
@@ -380,7 +380,7 @@ void functions_lzma(PE *pe)
 	}
 
 
-	wsprintf(data, L"TLS callback number is %d bytes...", pe->tls_callbacksnum);
+	wsprintf(data, "TLS callback number is %d bytes...", pe->tls_callbacksnum);
 	psize = sfunc[0] + sfunc[1] + sfunc[2] + sfunc[3] + sizeof(pointers) + pe->sz_compdata_struct + pe->sz_dllimports + pe->sz_dllexports;
 	psize += (sizeof(IMAGE_TLS_DIRECTORY32) + sizeof(DWORD)) + pe->tls_callbacksnum;
 	LPVOID psection = malloc(psize);
@@ -401,7 +401,7 @@ void functions_lzma(PE *pe)
 	memcpy((LPVOID)p.ocompdata, pe->compdata_struct, pe->sz_compdata_struct);
 	AddSection(".ML!", psection, psize, NULL, pe);
 
-	wsprintf(data, L"Decompressor stub is %d bytes...", psize);
+	wsprintf(data, "Decompressor stub is %d bytes...", psize);
 	message->DoLogMessage(data, ERR_INFO);
 	construct((pointers*)pe->m_sections[pe->int_headers.FileHeader.NumberOfSections - 1].data, pe, sfunc, psize);
 }
@@ -413,7 +413,7 @@ void functions_fr(PE *pe)
 
 	LogMessage* message = LogMessage::GetSingleton();
 	TCHAR data[256] = { 0 };
-	message->DoLogMessage(L"Copying decompressor code...", ERR_INFO);
+	message->DoLogMessage("Copying decompressor code...", ERR_INFO);
 
 	DWORD unpacker_sz = get_frdepackersize();
 	DWORD unpacker_ptr = get_frdepackerptr();
@@ -475,7 +475,7 @@ void functions_fr(PE *pe)
 	memcpy((LPVOID)p.ocompdata, pe->compdata_struct, pe->sz_compdata_struct);
 	AddSection(".ML!", psection, psize, NULL, pe);
 
-	wsprintf(data, L"Decompressor stub is %d bytes...", psize);
+	wsprintf(data, "Decompressor stub is %d bytes...", psize);
 	message->DoLogMessage(data, ERR_INFO);
 	construct((pointers*)pe->m_sections[pe->int_headers.FileHeader.NumberOfSections - 1].data, pe, sfunc, psize);
 }
@@ -495,9 +495,9 @@ void construct(pointers *pt, PE *pe, DWORD sfunc[4], int section_size)
 	DWORD pointer = pe->int_headers.OptionalHeader.ImageBase + vaddress;
 	DWORD entry = pe->int_headers.OptionalHeader.ImageBase + vaddress + sizeof(pointers);
 
-	wsprintf(data, L"PE stub location is at 0x%04X...", pointer);
+	wsprintf(data, "PE stub location is at 0x%04X...", pointer);
 	message->DoLogMessage(data, ERR_INFO);
-	message->DoLogMessage(L"Generating shellcode...", ERR_INFO);
+	message->DoLogMessage("Generating shellcode...", ERR_INFO);
 	memset(&pt->opcode, 0x00, sizeof(pt->opcode));
 	Bootstrapper code(pointer, entry, pe->oep);
 	memcpy(&pt->opcode, code.getCode(), code.getSize());
@@ -512,7 +512,7 @@ void construct(pointers *pt, PE *pe, DWORD sfunc[4], int section_size)
 	DWORD pimports = (DWORD)pe->m_sections[pe->int_headers.FileHeader.NumberOfSections - 1].data + sizeof(pointers) + sfunc[0] + sfunc[1] + sfunc[2] + sfunc[3] + pe->sz_compdata_struct;
 	DWORD pimportsrva = entry + sfunc[0] + sfunc[1] + sfunc[2] + sfunc[3] + pe->sz_compdata_struct - pe->int_headers.OptionalHeader.ImageBase;
 
-	wsprintf(data, L"Building imports at 0x%04X ...", pimportsrva);
+	wsprintf(data, "Building imports at 0x%04X ...", pimportsrva);
 	message->DoLogMessage(data, ERR_INFO);
 
 	char **_dlls = pe->dlls;
@@ -603,7 +603,7 @@ void construct(pointers *pt, PE *pe, DWORD sfunc[4], int section_size)
 	if (pe->sz_dllexports)
 	{
 
-		wsprintf(data, L"Building exports at 0x%04X ...", pexportsrva);
+		wsprintf(data, "Building exports at 0x%04X ...", pexportsrva);
 		message->DoLogMessage(data, ERR_INFO);
 
 		PIMAGE_EXPORT_DIRECTORY _dir = (PIMAGE_EXPORT_DIRECTORY)pe->new_exports;
@@ -648,7 +648,7 @@ void construct(pointers *pt, PE *pe, DWORD sfunc[4], int section_size)
 		pe->ptr_tlsdir->AddressOfCallBacks = tlscallbackfakerva + pe->int_headers.OptionalHeader.ImageBase;
 		pe->ptr_tlsdir->AddressOfIndex = pe->int_headers.OptionalHeader.ImageBase + tlsindexrva;
 		memcpy((IMAGE_TLS_DIRECTORY32*)ptls, pe->ptr_tlsdir, sizeof(IMAGE_TLS_DIRECTORY32));
-		wsprintf(data, L"Building new TLS directory at 0x%04X ...", tlsrva);
+		wsprintf(data, "Building new TLS directory at 0x%04X ...", tlsrva);
 		message->DoLogMessage(data, ERR_INFO);
 
 		pe->int_headers.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress = tlsrva;
@@ -660,7 +660,7 @@ void construct(pointers *pt, PE *pe, DWORD sfunc[4], int section_size)
 	DWORD sizeofrelocs = 0;
 	if (pe->int_headers.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].Size)
 	{
-		wsprintf(data, L"Building relocations at 0x%04X ...", prelocsrva);
+		wsprintf(data, "Building relocations at 0x%04X ...", prelocsrva);
 		message->DoLogMessage(data, ERR_INFO);
 		CRelocBuilder ripper_reloc;
 		ripper_reloc.AddRelocation(vaddress + 1);

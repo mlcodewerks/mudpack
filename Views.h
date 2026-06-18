@@ -60,9 +60,9 @@ void LogMessage::init(HWND hwnd)
 		window_hwnd = hwnd;
 		listbox = GetDlgItem(window_hwnd, IDC_LOG);
 		listbox.SetImageList(imglist.m_hImageList, LVSIL_SMALL);
-		listbox.AddColumn(L"Description", 0);
+		listbox.AddColumn("Description", 0);
 		listbox.SetColumnWidth(0, 300);
-		DoLogMessage(L"Welcome to mupack!", ERR_INFO);
+		DoLogMessage("Welcome to mupack!", ERR_INFO);
 	}
 }
 
@@ -100,7 +100,44 @@ enum COLOR
 	YELLOW_FADE_BACKGROUND = YELLOW_FADE_TEXT << 4, WHITE_FADE_BACKGROUND = WHITE_FADE_TEXT << 4
 };
 
-void LogMessage::DoLogMessage(TCHAR* message, int warnlevel)
+wchar_t* ansi_to_unicode(const char* ansi)
+{
+	if (!ansi) return NULL;
+
+	int needed = MultiByteToWideChar(
+		CP_ACP,      // system ANSI code page
+		MB_ERR_INVALID_CHARS,
+		ansi,
+		-1,          // null-terminated input
+		NULL,
+		0
+	);
+
+	if (needed <= 0)
+		return NULL;
+
+	wchar_t* wide = (wchar_t*)malloc((size_t)needed * sizeof(wchar_t));
+	if (!wide)
+		return NULL;
+
+	int written = MultiByteToWideChar(
+		CP_ACP,
+		MB_ERR_INVALID_CHARS,
+		ansi,
+		-1,
+		wide,
+		needed
+	);
+
+	if (written <= 0) {
+		free(wide);
+		return NULL;
+	}
+
+	return wide;
+}
+
+void LogMessage::DoLogMessage(char* message, int warnlevel)
 {
 	if (listbox)
 	{
@@ -135,13 +172,13 @@ void LogMessage::DoLogMessage(TCHAR* message, int warnlevel)
 class CProcessThread : public CThreadImpl<CProcessThread>
 {
 	HWND m_hWndParent;
-	TCHAR * exe_path;
+	CHAR * exe_path;
 
 public:
-	CProcessThread(HWND hWndParent, TCHAR * path)
+	CProcessThread(HWND hWndParent, CHAR * path)
 		: m_hWndParent(hWndParent)
 	{
-		exe_path = _tcsdup(path);
+		exe_path = strdup(path);
 	}
 	~CProcessThread()
 	{
@@ -151,7 +188,7 @@ public:
 	DWORD Run()
 	{
 		LogMessage* message = LogMessage::GetSingleton();
-		message->DoLogMessage(L"Processing. Please wait.", ERR_INFO);
+		message->DoLogMessage("Processing. Please wait.", ERR_INFO);
 		compress_file(exe_path);
 		return 0;
 	}
@@ -183,7 +220,7 @@ public:
 	LRESULT OnInitDialogView1(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
 		file_pathedit = GetDlgItem(IDC_PATH);
-		file_pathedit.SetWindowText(L"I'm gonna wreck it!");
+		file_pathedit.SetWindowText("I'm gonna wreck it!");
 		messages = LogMessage::CreateInstance(m_hWnd);
 		RegisterDropTarget();
 		return TRUE;
@@ -194,7 +231,7 @@ public:
 	{
 		if (process_thread)
 		{
-			MessageBox(L"Please wait for the current job to complete.", L"Warning", MB_ICONINFORMATION);
+			MessageBox("Please wait for the current job to complete.", "Warning", MB_ICONINFORMATION);
 			return 0;
 		}
 		return 0;
@@ -209,7 +246,7 @@ public:
 				delete process_thread;
 				process_thread = NULL;
 				KillTimer(TIMERID);
-				file_pathedit.SetWindowText(L"Packing job complete.");
+				file_pathedit.SetWindowText("Packing job complete.");
 			}
 		}
 
@@ -225,13 +262,13 @@ public:
 		if (process_thread)
 		{
 
-			message->DoLogMessage(L"Please wait for the current job to complete.", ERR_ERROR);
+			message->DoLogMessage("Please wait for the current job to complete.", ERR_ERROR);
 			return;
 		}
 		file_pathedit.SetWindowText(lpszPath);
 		process_thread = new CProcessThread(m_hWnd, (TCHAR*)lpszPath);
-		message->DoLogMessage(L"Started packing thread.", ERR_INFO);
-		file_pathedit.SetWindowText(L"Packing job in progress...");
+		message->DoLogMessage("Started packing thread.", ERR_INFO);
+		file_pathedit.SetWindowText("Packing job in progress...");
 		SetTimer(TIMERID, 100);
 	}
 

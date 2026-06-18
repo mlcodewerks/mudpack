@@ -86,9 +86,9 @@ typedef void(*compress_functions_)(PE *pe);
 
 
 
-int compress_file(TCHAR* argv);
-int pe_read(TCHAR* filename, PE *pe);
-int pe_write(TCHAR* filename, PE *pe);
+int compress_file(CHAR* argv);
+int pe_read(CHAR* filename, PE *pe);
+int pe_write(CHAR* filename, PE *pe);
 void AddSection(const char* sname, LPVOID _section, DWORD _section_size, DWORD _entry_point_offset, PE *pe);
 BYTE * comp(BYTE* input, int in_size, int * out_size);
 DWORD rvatoffset(DWORD Address, PE* pe);

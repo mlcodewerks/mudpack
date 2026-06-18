@@ -126,7 +126,7 @@ int wsstrcpy(char *dest, const char *src)
 
 
 
-int compress_file(TCHAR* argv)
+int compress_file(CHAR* argv)
 {
 	LogMessage* message = LogMessage::GetSingleton();
 	compress_data_ compress_data;
@@ -136,16 +136,16 @@ int compress_file(TCHAR* argv)
 	ZeroMemory(&pe, sizeof(PE));
 	if (!pe_read(argv, &pe))
 	{
-		message->DoLogMessage(L"File packed unsuccessfully!", ERR_ERROR);
+		message->DoLogMessage("File packed unsuccessfully!", ERR_ERROR);
 		return 1;
 	}
-	TCHAR outfile[MAX_PATH] = { 0 };
-	TCHAR ext[MAX_PATH] = { 0 };
-	TCHAR *dot = wcschr(argv, L'.');
-	if (dot) lstrcpy(ext, dot);
-	lstrcpy(outfile, argv);
-	lstrcat(outfile, L".packed");
-	lstrcat(outfile, ext);
+	CHAR outfile[MAX_PATH] = { 0 };
+	CHAR ext[MAX_PATH] = { 0 };
+	CHAR *dot = strchr(argv, L'.');
+	if (dot) strcpy(ext, dot);
+	strcpy(outfile, argv);
+	strcat(outfile, ".packed");
+	strcat(outfile, ext);
 
 
 	/* Initialize internal dll calls */
@@ -287,9 +287,9 @@ int compress_file(TCHAR* argv)
 	{
 		pe.ptr_tlsdir = (PIMAGE_TLS_DIRECTORY32)malloc(sizeof(IMAGE_TLS_DIRECTORY32));
 		memset(pe.ptr_tlsdir, 0, sizeof(IMAGE_TLS_DIRECTORY32));
-		TCHAR data[256] = { 0 };
+		CHAR data[256] = { 0 };
 		DWORD *tls_callbackptr = 0;
-		wsprintf(data, L"Found TLS directory at 0x%04X...", pe.int_headers.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress);
+		sprintf(data, "Found TLS directory at 0x%04X...", pe.int_headers.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress);
 		message->DoLogMessage(data, ERR_INFO);
 		IMAGE_TLS_DIRECTORY32 *ptr = (IMAGE_TLS_DIRECTORY32*)rvatoffset(pe.int_headers.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress, &pe);
 		memcpy(pe.ptr_tlsdir, ptr, sizeof(IMAGE_TLS_DIRECTORY32));
@@ -331,7 +331,7 @@ int compress_file(TCHAR* argv)
 		DWORD imageBase = pe.int_headers.OptionalHeader.ImageBase;
 		DWORD codeStart = pe.int_headers.OptionalHeader.BaseOfCode;
 		DWORD codeSize = pe.int_headers.OptionalHeader.SizeOfCode;
-		TCHAR data[256] = { 0 };
+		CHAR data[256] = { 0 };
 
 		if (pe.m_sections[i].header.SizeOfRawData)
 		{
@@ -339,7 +339,7 @@ int compress_file(TCHAR* argv)
 			//Resources
 			if (pe.int_headers.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress == pe.m_sections[i].header.VirtualAddress)
 			{
-				message->DoLogMessage(L"Compressing resources...", ERR_INFO);
+				message->DoLogMessage("Compressing resources...", ERR_INFO);
 				unsigned char* resources_backup = (unsigned char *)malloc(pe.m_sections[i].header.SizeOfRawData);
 				memcpy(resources_backup, pe.m_sections[i].data, pe.m_sections[i].header.SizeOfRawData);
 				PIMAGE_RESOURCE_DIRECTORY rescdir = (PIMAGE_RESOURCE_DIRECTORY)pe.m_sections[i].data, _rescdir;
@@ -361,8 +361,8 @@ int compress_file(TCHAR* argv)
 					pe.m_sections[i].cdata = compress_data(pe.new_resource_section + baseresc, pe.new_resource_cdata_size, &pe.m_sections[i].csize);
 					if (!pe.m_sections[i].cdata)
 					{
-						message->DoLogMessage(L"Failed to compress resource section!", ERR_WARNING);
-						message->DoLogMessage(L"Resource section is left uncompressed...", ERR_WARNING);
+						message->DoLogMessage("Failed to compress resource section!", ERR_WARNING);
+						message->DoLogMessage("Resource section is left uncompressed...", ERR_WARNING);
 						carray++;
 						pe.sz_compdata_struct = sizeof(DWORD) + carray * sizeof(compdata);
 						pe.compdata_struct = realloc(pe.compdata_struct, pe.sz_compdata_struct);
@@ -385,8 +385,8 @@ int compress_file(TCHAR* argv)
 					}
 				}
 				catch (...) {
-					message->DoLogMessage(L"Failed to compress resource section!", ERR_ERROR);
-					message->DoLogMessage(L"File packed unsuccessfully!", ERR_ERROR);
+					message->DoLogMessage("Failed to compress resource section!", ERR_ERROR);
+					message->DoLogMessage("File packed unsuccessfully!", ERR_ERROR);
 					free(resources_backup);
 					return 0;
 				}
@@ -422,7 +422,7 @@ int compress_file(TCHAR* argv)
 				bool iscode = false;
 				if (codeStart >= pe.m_sections[i].header.VirtualAddress && codeStart < pe.m_sections[i].header.VirtualAddress + pe.m_sections[i].header.SizeOfRawData) iscode = true;
 				if (iscode) {
-					message->DoLogMessage(L"Compressing code section", ERR_INFO);
+					message->DoLogMessage("Compressing code section", ERR_INFO);
 					x86_codefilter_(pe.m_sections[i].data, pe.m_sections[i].header.SizeOfRawData);
 
 
@@ -431,14 +431,14 @@ int compress_file(TCHAR* argv)
 						pe.m_sections[i].cdata = compress_data(pe.m_sections[i].data, pe.m_sections[i].header.SizeOfRawData, &pe.m_sections[i].csize);
 						if (!pe.m_sections[i].cdata)
 						{
-							message->DoLogMessage(L"Failed to compress code section!", ERR_ERROR);
-							message->DoLogMessage(L"File packed unsuccessfully!", ERR_ERROR);
+							message->DoLogMessage("Failed to compress code section!", ERR_ERROR);
+							message->DoLogMessage("File packed unsuccessfully!", ERR_ERROR);
 							return 0;
 						}
 					}
 					catch (...) {
-						message->DoLogMessage(L"Failed to compress code section!", ERR_ERROR);
-						message->DoLogMessage(L"File packed unsuccessfully!", ERR_ERROR);
+						message->DoLogMessage("Failed to compress code section!", ERR_ERROR);
+						message->DoLogMessage("File packed unsuccessfully!", ERR_ERROR);
 						return 0;
 					}
 
@@ -451,7 +451,7 @@ int compress_file(TCHAR* argv)
 					((compdata*)((DWORD)pe.compdata_struct + sizeof(DWORD)))[carray - 1].nlen = pe.m_sections[i].header.SizeOfRawData;
 					((compdata*)((DWORD)pe.compdata_struct + sizeof(DWORD)))[carray - 1].ulen = 0;
 					((compdata*)((DWORD)pe.compdata_struct + sizeof(DWORD)))[carray - 1].iscode = 1;
-					wsprintf(data, L"Data compressed to 0x%04X bytes...", pe.m_sections[i].csize);
+					sprintf(data, "Data compressed to 0x%04X bytes...", pe.m_sections[i].csize);
 					message->DoLogMessage(data, ERR_INFO);
 
 
@@ -469,9 +469,9 @@ int compress_file(TCHAR* argv)
 				}
 				else
 				{
-					wsprintf(data, L"Compressing %s section at 0x%04X.........", pe.m_sections[i].header.Name, pe.m_sections[i].header.VirtualAddress);
+					sprintf(data, "Compressing %s section at 0x%04X.........", pe.m_sections[i].header.Name, pe.m_sections[i].header.VirtualAddress);
 					message->DoLogMessage(data, ERR_INFO);
-					wsprintf(data, L"%s section is 0x%04X bytes.........", pe.m_sections[i].header.Name, pe.m_sections[i].header.SizeOfRawData);
+					sprintf(data, "%s section is 0x%04X bytes.........", pe.m_sections[i].header.Name, pe.m_sections[i].header.SizeOfRawData);
 					message->DoLogMessage(data, ERR_INFO);
 
 
@@ -486,16 +486,16 @@ int compress_file(TCHAR* argv)
 						pe.m_sections[i].cdata = compress_data(pe.m_sections[i].data, pe.m_sections[i].header.SizeOfRawData, &pe.m_sections[i].csize);
 						if (!pe.m_sections[i].cdata)
 						{
-							wsprintf(data, L"Failed to pack %s section!", pe.m_sections[i].header.Name);
+							sprintf(data, "Failed to pack %s section!", pe.m_sections[i].header.Name);
 							message->DoLogMessage(data, ERR_ERROR);
-							message->DoLogMessage(L"File packed unsuccessfully!", ERR_ERROR);
+							message->DoLogMessage("File packed unsuccessfully!", ERR_ERROR);
 							return 0;
 						}
 					}
 					catch (...) {
-						wsprintf(data, L"Failed to pack %s section!", pe.m_sections[i].header.Name);
+						sprintf(data, "Failed to pack %s section!", pe.m_sections[i].header.Name);
 						message->DoLogMessage(data, ERR_ERROR);
-						message->DoLogMessage(L"File packed unsuccessfully!", ERR_ERROR);
+						message->DoLogMessage("File packed unsuccessfully!", ERR_ERROR);
 						return 0;
 					}
 					carray++;
@@ -506,7 +506,7 @@ int compress_file(TCHAR* argv)
 					((compdata*)((DWORD)pe.compdata_struct + sizeof(DWORD)))[carray - 1].nlen = pe.m_sections[i].header.SizeOfRawData;
 					((compdata*)((DWORD)pe.compdata_struct + sizeof(DWORD)))[carray - 1].ulen = 0;
 					((compdata*)((DWORD)pe.compdata_struct + sizeof(DWORD)))[carray - 1].iscode = 0;
-					wsprintf(data, L"Data compressed to 0x%04X bytes...", pe.m_sections[i].csize);
+					sprintf(data, "Data compressed to 0x%04X bytes...", pe.m_sections[i].csize);
 					message->DoLogMessage(data, ERR_INFO);
 
 
@@ -531,9 +531,9 @@ int compress_file(TCHAR* argv)
 
 	if (!pe_write(outfile, &pe))
 	{
-		message->DoLogMessage(L"File packed unsuccessfully!", ERR_ERROR);
+		message->DoLogMessage("File packed unsuccessfully!", ERR_ERROR);
 		return 1;
 	}
-	message->DoLogMessage(L"File packed successfully!", ERR_SUCCESS);
+	message->DoLogMessage("File packed successfully!", ERR_SUCCESS);
 	return 0;
 }
